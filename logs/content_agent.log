@@ -174,3 +174,26 @@
 2025-09-03 23:01:54 | INFO     | core.module_registry:discover_and_load_modules:54 - Successfully loaded module: scheduling
 2025-09-03 23:01:54 | INFO     | __main__:initialize:94 - Content Agent initialized successfully
 2025-09-03 23:01:54 | INFO     | __main__:start_frontend:134 - Starting Streamlit frontend...
+2025-09-03 23:02:56 | INFO     | __main__:_setup_logging:61 - Logging configured
+2025-09-03 23:02:56 | INFO     | __main__:_setup_dependencies:74 - Dependencies configured
+2025-09-03 23:02:56 | INFO     | __main__:initialize:79 - Initializing Content Agent...
+2025-09-03 23:02:56 | INFO     | core.module_registry:discover_and_load_modules:42 - Discovered 5 modules: ['content_generation', 'keyword_research', 'scheduling', 'web_scraping', 'wordpress_integration']
+2025-09-03 23:02:57 | INFO     | modules.keyword_research.services.google_trends_service:_init_trends_client:34 - Google Trends client initialized (simulation mode)
+2025-09-03 23:02:57 | INFO     | modules.keyword_research.module:initialize:47 - Keyword Research module initialized successfully
+2025-09-03 23:02:57 | INFO     | core.module_registry:discover_and_load_modules:54 - Successfully loaded module: keyword_research
+2025-09-03 23:02:57 | INFO     | modules.content_generation.services.llm_service:_init_clients:66 - OpenAI client initialized
+2025-09-03 23:02:57 | ERROR    | modules.content_generation.services.llm_service:_init_clients:73 - Failed to initialize LLM clients: AsyncClient.__init__() got an unexpected keyword argument 'proxies'
+2025-09-03 23:02:57 | INFO     | modules.content_generation.module:initialize:55 - Content Generation module initialized successfully
+2025-09-03 23:02:57 | INFO     | core.module_registry:discover_and_load_modules:54 - Successfully loaded module: content_generation
+2025-09-03 23:02:57 | INFO     | modules.web_scraping.module:initialize:56 - Initializing web scraping module...
+2025-09-03 23:02:57 | INFO     | modules.web_scraping.services.scraping_service:initialize:138 - Crawl4AI scraping service initialized successfully
+2025-09-03 23:02:57 | INFO     | modules.web_scraping.module:initialize:75 - Web scraping module initialized successfully
+2025-09-03 23:02:57 | INFO     | core.module_registry:discover_and_load_modules:54 - Successfully loaded module: web_scraping
+2025-09-03 23:02:58 | INFO     | modules.wordpress_integration.services.wordpress_client:test_connection:65 - WordPress connection test successful
+2025-09-03 23:02:58 | INFO     | modules.wordpress_integration.module:initialize:62 - WordPress integration module initialized successfully
+2025-09-03 23:02:58 | INFO     | core.module_registry:discover_and_load_modules:54 - Successfully loaded module: wordpress_integration
+2025-09-03 23:02:58 | INFO     | modules.scheduling.services.scheduler_service:_init_celery:38 - Celery initialized (mock mode)
+2025-09-03 23:02:58 | INFO     | modules.scheduling.module:initialize:52 - Scheduling module initialized successfully
+2025-09-03 23:02:58 | INFO     | core.module_registry:discover_and_load_modules:54 - Successfully loaded module: scheduling
+2025-09-03 23:02:58 | INFO     | __main__:initialize:94 - Content Agent initialized successfully
+2025-09-03 23:02:58 | INFO     | __main__:start_frontend:134 - Starting Streamlit frontend...
