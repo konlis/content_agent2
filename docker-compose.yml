@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # Main Content Agent Application
+  content-agent:
+    build: .
+    ports:
+      - "8501:8501"  # Streamlit frontend
+      - "8000:8000"  # FastAPI backend
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/content_agent
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./exports:/app/exports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: content_agent
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache and Task Queue
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Worker for Background Tasks
+  celery-worker:
+    build: .
+    command: celery -A backend.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/content_agent
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    restart: unless-stopped
+
+  # Celery Beat for Scheduled Tasks
+  celery-beat:
+    build: .
+    command: celery -A backend.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/content_agent
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    restart: unless-stopped
+
+  # Flower for Celery Monitoring (Optional)
+  flower:
+    build: .
+    command: celery -A backend.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: content_agent_network
