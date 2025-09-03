@@ -4,12 +4,10 @@ WordPress Client Service - WordPress REST API integration
 
 import aiohttp
 import base64
-from typing import Dict, List, Any, Optional, Union
-from datetime import datetime
+from typing import Dict, List, Any, Optional
+from datetime import datetime, timedelta
 from loguru import logger
 import asyncio
-from urllib.parse import urljoin, urlparse
-import json
 
 from shared.config.settings import get_settings
 
@@ -24,9 +22,9 @@ class WordPressClient:
         self.logger = logger.bind(service="WordPressClient")
         
         # WordPress configuration
-        self.wordpress_url = self.settings.WORDPRESS_URL
-        self.username = self.settings.WORDPRESS_USERNAME  
-        self.app_password = self.settings.WORDPRESS_APP_PASSWORD
+        self.wordpress_url = self.settings.wordpress_url
+        self.username = self.settings.wordpress_username  
+        self.app_password = self.settings.wordpress_app_password
         
         # API endpoints
         self.api_base = f"{self.wordpress_url.rstrip('/')}/wp-json/wp/v2"
@@ -325,8 +323,8 @@ class WordPressClient:
     async def get_recent_posts_count(self, days: int = 7) -> int:
         """Get count of recent posts"""
         try:
-            # Calculate date threshold
-            threshold_date = (datetime.now() - timedelta(days=days)).isoformat()
+            # Calculate date threshold (use UTC for WordPress API compatibility)
+            threshold_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
             
             params = {
                 'after': threshold_date,

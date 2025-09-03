@@ -12,7 +12,7 @@ import random
 import re
 
 from shared.config.settings import get_settings
-from shared.utils.helpers import CacheUtils, WebScraper
+from shared.utils.helpers import CacheUtils
 
 class SerpService:
     """

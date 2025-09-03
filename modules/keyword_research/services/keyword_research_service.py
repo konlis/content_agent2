@@ -10,7 +10,7 @@ from loguru import logger
 import re
 
 from shared.database.models import KeywordResearch, get_db
-from shared.utils.helpers import TextProcessor, ValidationUtils, CacheUtils
+from shared.utils.helpers import TextProcessor, CacheUtils
 from shared.config.settings import get_settings
 
 class KeywordResearchService:

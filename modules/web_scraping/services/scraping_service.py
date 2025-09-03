@@ -132,8 +132,7 @@ class Crawl4AIScrapingService:
                 verbose=self.settings.debug
             )
             
-            # Start the crawler
-            await self.crawler.astart()
+            # Start the crawler (AsyncWebCrawler doesn't need explicit start)
             self.is_initialized = True
             
             self.logger.info("Crawl4AI scraping service initialized successfully")

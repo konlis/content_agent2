@@ -1,0 +1,3 @@
+[console_scripts]
+crawl4ai-download-models = crawl4ai.model_loader:main
+crawl4ai-migrate = crawl4ai.migrations:main

@@ -21,8 +21,8 @@ class ContentGenerationModule(BaseModule):
             name="content_generation",
             version="1.0.0",
             description="AI-powered content generation with multi-model support",
-            dependencies=["keyword_research"],  # Uses keyword research results
-            optional_dependencies=["seo_optimization", "scheduling"],
+            dependencies=[],  # No hard dependencies - can work independently
+            optional_dependencies=["keyword_research", "seo_optimization", "scheduling"],
             author="Content Agent Team"
         )
     
@@ -41,9 +41,16 @@ class ContentGenerationModule(BaseModule):
             self.register_service('template_service', self.template_service)
             self.register_service('content_service', self.content_service)
             
-            # Subscribe to events
-            self.subscribe_to_event('keyword_research.keyword_research_completed', self._on_keyword_research_completed)
-            self.subscribe_to_event('scheduling.content_generation_requested', self._on_content_generation_requested)
+            # Subscribe to events (only if modules are available)
+            try:
+                self.subscribe_to_event('keyword_research.keyword_research_completed', self._on_keyword_research_completed)
+            except:
+                self.logger.info("Keyword research module not available - skipping event subscription")
+            
+            try:
+                self.subscribe_to_event('scheduling.content_generation_requested', self._on_content_generation_requested)
+            except:
+                self.logger.info("Scheduling module not available - skipping event subscription")
             
             self.logger.info("Content Generation module initialized successfully")
             return True

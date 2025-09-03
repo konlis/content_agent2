@@ -26,6 +26,10 @@ class Container:
         self._services[name] = instance
         self._logger.debug(f"Registered service: {name}")
     
+    def register_service(self, name: str, instance: Any) -> None:
+        """Register a service instance (alias for register)"""
+        self.register(name, instance)
+    
     def register_factory(self, name: str, factory: Callable[[], T]) -> None:
         """Register a factory function for lazy initialization"""
         self._factories[name] = factory

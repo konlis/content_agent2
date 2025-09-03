@@ -99,6 +99,33 @@ class WebScrapingModule(BaseModule):
             self.logger.error(f"Failed to start web scraping module: {e}")
             return False
     
+    def get_module_info(self):
+        """Return module information and dependencies"""
+        from core.base_module import ModuleInfo
+        return ModuleInfo(
+            name=self.name,
+            version=self.version,
+            description=self.description,
+            dependencies=[]
+        )
+    
+    def register_routes(self, app):
+        """Register FastAPI routes for this module"""
+        # Routes would be registered here
+        pass
+    
+    def register_ui_components(self) -> Dict[str, Any]:
+        """Register Streamlit UI components for this module"""
+        return {
+            "web_scraping": self._render_web_scraping_ui
+        }
+    
+    def _render_web_scraping_ui(self):
+        """Render the web scraping UI"""
+        import streamlit as st
+        st.title("🕷️ Web Scraping")
+        st.write("Web scraping functionality will be available here.")
+    
     async def stop(self) -> bool:
         """Stop the web scraping module"""
         try:

@@ -20,8 +20,8 @@ class WordPressIntegrationModule(BaseModule):
             name="wordpress_integration",
             version="1.0.0",
             description="WordPress content publishing and site management",
-            dependencies=["content_generation"],
-            optional_dependencies=["scheduling"],
+            dependencies=[],  # No hard dependencies - can work independently
+            optional_dependencies=["content_generation", "scheduling"],
             author="Content Agent Team"
         )
     
@@ -38,10 +38,21 @@ class WordPressIntegrationModule(BaseModule):
             self.register_service('content_formatter', self.content_formatter)
             self.register_service('media_manager', self.media_manager)
             
-            # Subscribe to events
-            self.subscribe_to_event('content_generation.content_ready', self._on_content_ready)
-            self.subscribe_to_event('scheduling.publish_requested', self._on_publish_requested)
-            self.subscribe_to_event('content_generation.media_generated', self._on_media_generated)
+            # Subscribe to events (only if modules are available)
+            try:
+                self.subscribe_to_event('content_generation.content_ready', self._on_content_ready)
+            except:
+                self.logger.info("Content generation module not available - skipping event subscription")
+            
+            try:
+                self.subscribe_to_event('scheduling.publish_requested', self._on_publish_requested)
+            except:
+                self.logger.info("Scheduling module not available - skipping event subscription")
+            
+            try:
+                self.subscribe_to_event('content_generation.media_generated', self._on_media_generated)
+            except:
+                self.logger.info("Content generation module not available - skipping event subscription")
             
             # Test WordPress connection
             connection_ok = await self.wordpress_client.test_connection()

@@ -26,9 +26,9 @@ class MediaManager:
         self.logger = logger.bind(service="MediaManager")
         
         # WordPress configuration
-        self.wordpress_url = self.settings.WORDPRESS_URL
-        self.username = self.settings.WORDPRESS_USERNAME
-        self.app_password = self.settings.WORDPRESS_APP_PASSWORD
+        self.wordpress_url = self.settings.wordpress_url
+        self.username = self.settings.wordpress_username
+        self.app_password = self.settings.wordpress_app_password
         
         # API endpoints
         self.api_base = f"{self.wordpress_url.rstrip('/')}/wp-json/wp/v2"

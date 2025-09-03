@@ -77,7 +77,11 @@ class ModuleRegistry:
             module_lib = importlib.import_module(module_path)
             
             # Find the module class (should follow naming convention)
-            module_class_name = f"{''.join(word.capitalize() for word in module_name.split('_'))}Module"
+            # Handle special cases for proper capitalization
+            if module_name == "wordpress_integration":
+                module_class_name = "WordPressIntegrationModule"
+            else:
+                module_class_name = f"{''.join(word.capitalize() for word in module_name.split('_'))}Module"
             
             if not hasattr(module_lib, module_class_name):
                 self.logger.error(f"Module class {module_class_name} not found in {module_path}")
@@ -143,6 +147,20 @@ class ModuleRegistry:
         
         return ordered
     
+    def _get_module_info_safe(self, module_name: str) -> Optional[ModuleInfo]:
+        """Safely get module info without full import"""
+        try:
+            # Create a basic ModuleInfo with minimal information
+            return ModuleInfo(
+                name=module_name,
+                version="1.0.0",
+                description=f"Module {module_name}",
+                dependencies=[]
+            )
+        except Exception as e:
+            self.logger.warning(f"Could not create module info for {module_name}: {e}")
+            return None
+
     def _discover_modules(self, modules_path: str) -> Dict[str, ModuleInfo]:
         """Discover available modules in the modules directory"""
         discovered = {}

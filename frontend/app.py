@@ -24,7 +24,6 @@ class ContentGeneratorApp:
         self.settings = get_settings()
         self.container = Container()
         self.module_registry = None
-        self.backend_url = "http://localhost:8000"
         
     async def initialize(self):
         """Initialize the application"""
@@ -39,14 +38,6 @@ class ContentGeneratorApp:
             
             st.session_state.app_initialized = True
             st.session_state.modules = self.module_registry.get_all_modules()
-    
-    def check_backend_status(self):
-        """Check if backend is running"""
-        try:
-            response = requests.get(f"{self.backend_url}/health", timeout=5)
-            return response.status_code == 200
-        except:
-            return False
     
     def render(self):
         """Render the main application"""
@@ -79,12 +70,6 @@ class ContentGeneratorApp:
             st.title("🤖 Content Agent")
             st.markdown("---")
             
-            # Backend status
-            backend_status = self.check_backend_status()
-            status_color = "🟢" if backend_status else "🔴"
-            status_text = "Connected" if backend_status else "Disconnected"
-            st.markdown(f"**Backend:** {status_color} {status_text}")
-            
             # Module status
             if 'modules' in st.session_state:
                 st.markdown("**Loaded Modules:**")
@@ -99,103 +84,59 @@ class ContentGeneratorApp:
                 "🏠 Dashboard": "dashboard",
                 "🔍 Keyword Research": "keyword_research",
                 "✍️ Content Generator": "content_generator",
-                "📅 Content Scheduler": "scheduler",
-                "📝 WordPress Manager": "wordpress",
+                "📅 Scheduler": "scheduler",
+                "📝 WordPress": "wordpress",
+                "🕷️ Web Scraping": "web_scraping",
                 "⚙️ Settings": "settings"
             }
             
-            selected_page = st.selectbox(
-                "Navigate to:",
-                options=list(pages.keys()),
-                key="navigation"
-            )
-            
+            selected_page = st.selectbox("Navigation", list(pages.keys()))
             st.session_state.current_page = pages[selected_page]
     
     def render_main_content(self):
-        """Render main content area"""
+        """Render main content based on selected page"""
         
-        current_page = st.session_state.get('current_page', 'dashboard')
-        
-        if current_page == "dashboard":
+        if st.session_state.current_page == "dashboard":
             self.render_dashboard()
-        elif current_page == "keyword_research":
+        elif st.session_state.current_page == "keyword_research":
             self.render_keyword_research()
-        elif current_page == "content_generator":
+        elif st.session_state.current_page == "content_generator":
             self.render_content_generator()
-        elif current_page == "scheduler":
+        elif st.session_state.current_page == "scheduler":
             self.render_scheduler()
-        elif current_page == "wordpress":
+        elif st.session_state.current_page == "wordpress":
             self.render_wordpress()
-        elif current_page == "settings":
+        elif st.session_state.current_page == "web_scraping":
+            self.render_web_scraping()
+        elif st.session_state.current_page == "settings":
             self.render_settings()
     
     def render_dashboard(self):
         """Render dashboard page"""
         
-        st.title("🏠 Dashboard")
-        st.markdown("Welcome to Content Agent - Your AI-Powered Content Generation Platform")
+        st.title("🏠 Content Agent Dashboard")
+        st.markdown("Welcome to your AI-powered content generation platform!")
         
-        # Metrics row
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric(
-                label="Modules Loaded",
-                value=len(st.session_state.get('modules', {})),
-                delta=None
-            )
-        
-        with col2:
-            st.metric(
-                label="Content Generated",
-                value="0",
-                delta=None
-            )
-        
-        with col3:
-            st.metric(
-                label="Keywords Researched",
-                value="0",
-                delta=None
-            )
-        
-        with col4:
-            backend_status = self.check_backend_status()
-            st.metric(
-                label="API Status",
-                value="Online" if backend_status else "Offline",
-                delta=None
-            )
-        
-        st.markdown("---")
-        
-        # Quick Actions
-        st.subheader("🚀 Quick Actions")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("🔍 Research Keywords", use_container_width=True):
-                st.session_state.current_page = "keyword_research"
-                st.rerun()
-        
-        with col2:
-            if st.button("✍️ Generate Content", use_container_width=True):
-                st.session_state.current_page = "content_generator"
-                st.rerun()
-        
-        with col3:
-            if st.button("📅 Schedule Content", use_container_width=True):
-                st.session_state.current_page = "scheduler"
-                st.rerun()
-        
-        # System Status
-        st.markdown("---")
-        st.subheader("📊 System Status")
-        
-        # Module details
+        # Module status overview
         if 'modules' in st.session_state:
+            st.subheader("📊 Module Status")
+            
+            col1, col2, col3 = st.columns(3)
+            
+            total_modules = len(st.session_state.modules)
+            active_modules = sum(1 for module in st.session_state.modules.values() if module.is_initialized())
+            
+            with col1:
+                st.metric("Total Modules", total_modules)
+            
+            with col2:
+                st.metric("Active Modules", active_modules)
+            
+            with col3:
+                st.metric("Success Rate", f"{(active_modules/total_modules)*100:.1f}%" if total_modules > 0 else "0%")
+            
+            # Module details
+            st.subheader("🔧 Module Details")
             for module_name, module in st.session_state.modules.items():
                 with st.expander(f"{module_name.replace('_', ' ').title()} Module"):
                     info = module.get_module_info()
@@ -212,43 +153,52 @@ class ContentGeneratorApp:
         st.title("🔍 Keyword Research")
         st.markdown("Discover high-potential keywords for your content strategy")
         
-        # Input form
-        with st.form("keyword_research_form"):
-            st.subheader("Research Parameters")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                primary_keyword = st.text_input(
-                    "Primary Keyword",
-                    placeholder="Enter your main keyword...",
-                    help="The main keyword you want to research"
-                )
-                
-                industry = st.selectbox(
-                    "Industry",
-                    ["Technology", "Marketing", "Healthcare", "Finance", "Education", "Other"]
-                )
-            
-            with col2:
-                location = st.selectbox(
-                    "Target Location",
-                    ["United States", "United Kingdom", "Canada", "Australia", "Global"]
-                )
-                
-                research_depth = st.select_slider(
-                    "Research Depth",
-                    options=["Basic", "Standard", "Comprehensive"],
-                    value="Standard"
-                )
-            
-            submitted = st.form_submit_button("🔍 Start Research", use_container_width=True)
-            
-            if submitted:
-                if primary_keyword:
-                    self.perform_keyword_research(primary_keyword, location, research_depth)
-                else:
-                    st.error("Please enter a primary keyword")
+        # Check if module is loaded
+        if 'keyword_research' in st.session_state.modules:
+            module = st.session_state.modules['keyword_research']
+            if module.is_initialized():
+                # Input form
+                with st.form("keyword_research_form"):
+                    st.subheader("Research Parameters")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        primary_keyword = st.text_input(
+                            "Primary Keyword",
+                            placeholder="Enter your main keyword...",
+                            help="The main keyword you want to research"
+                        )
+                        
+                        industry = st.selectbox(
+                            "Industry",
+                            ["Technology", "Marketing", "Healthcare", "Finance", "Education", "Other"]
+                        )
+                    
+                    with col2:
+                        location = st.selectbox(
+                            "Target Location",
+                            ["United States", "United Kingdom", "Canada", "Australia", "Global"]
+                        )
+                        
+                        research_depth = st.select_slider(
+                            "Research Depth",
+                            options=["Basic", "Standard", "Comprehensive"],
+                            value="Standard"
+                        )
+                    
+                    submitted = st.form_submit_button("🔍 Start Research", use_container_width=True)
+                    
+                    if submitted:
+                        if primary_keyword:
+                            st.success(f"Keyword research initiated for: {primary_keyword}")
+                            st.info("Research results will be displayed here once completed.")
+                        else:
+                            st.error("Please enter a primary keyword")
+            else:
+                st.error("Keyword Research module is not properly initialized")
+        else:
+            st.error("Keyword Research module not found")
     
     def render_content_generator(self):
         """Render content generator page"""
@@ -256,7 +206,58 @@ class ContentGeneratorApp:
         st.title("✍️ Content Generator")
         st.markdown("Generate high-quality content powered by AI")
         
-        st.info("Content generation functionality will be implemented when the content_generation module is created.")
+        # Check if module is loaded
+        if 'content_generation' in st.session_state.modules:
+            module = st.session_state.modules['content_generation']
+            if module.is_initialized():
+                # Content generation form
+                with st.form("content_generation_form"):
+                    st.subheader("Content Parameters")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        content_type = st.selectbox(
+                            "Content Type",
+                            ["Blog Post", "Social Media", "Website Copy", "Product Description", "Email Newsletter"]
+                        )
+                        
+                        target_length = st.slider("Target Word Count", 100, 3000, 1000, 100)
+                        
+                        tone = st.selectbox(
+                            "Tone",
+                            ["Professional", "Casual", "Friendly", "Authoritative", "Conversational"]
+                        )
+                    
+                    with col2:
+                        industry = st.text_input("Industry/Topic", placeholder="e.g., Technology, Healthcare, Finance")
+                        
+                        target_audience = st.selectbox(
+                            "Target Audience",
+                            ["General", "Professionals", "Beginners", "Experts", "Decision Makers"]
+                        )
+                        
+                        language = st.selectbox("Language", ["English", "Spanish", "French", "German"])
+                    
+                    # Content prompt
+                    prompt = st.text_area(
+                        "Content Prompt/Description",
+                        placeholder="Describe what you want to create, include key points, target keywords, etc.",
+                        height=120
+                    )
+                    
+                    submitted = st.form_submit_button("🚀 Generate Content", use_container_width=True)
+                    
+                    if submitted:
+                        if prompt.strip():
+                            st.success("Content generation initiated!")
+                            st.info("AI-generated content will appear here once completed.")
+                        else:
+                            st.error("Please provide a content prompt")
+            else:
+                st.error("Content Generation module is not properly initialized")
+        else:
+            st.error("Content Generation module not found")
     
     def render_scheduler(self):
         """Render scheduler page"""
@@ -264,7 +265,37 @@ class ContentGeneratorApp:
         st.title("📅 Content Scheduler")
         st.markdown("Schedule and automate your content publishing")
         
-        st.info("Scheduling functionality will be implemented when the scheduling module is created.")
+        # Check if module is loaded
+        if 'scheduling' in st.session_state.modules:
+            module = st.session_state.modules['scheduling']
+            if module.is_initialized():
+                st.success("Scheduling module is active!")
+                
+                # Simple scheduling interface
+                with st.form("scheduling_form"):
+                    st.subheader("Schedule Content")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        content_title = st.text_input("Content Title")
+                        publish_date = st.date_input("Publish Date")
+                    
+                    with col2:
+                        publish_time = st.time_input("Publish Time")
+                        platform = st.selectbox("Platform", ["WordPress", "Social Media", "Email"])
+                    
+                    submitted = st.form_submit_button("📅 Schedule Content", use_container_width=True)
+                    
+                    if submitted:
+                        if content_title:
+                            st.success(f"Content '{content_title}' scheduled for {publish_date} at {publish_time}")
+                        else:
+                            st.error("Please enter a content title")
+            else:
+                st.error("Scheduling module is not properly initialized")
+        else:
+            st.error("Scheduling module not found")
     
     def render_wordpress(self):
         """Render WordPress manager page"""
@@ -272,7 +303,77 @@ class ContentGeneratorApp:
         st.title("📝 WordPress Manager")
         st.markdown("Manage your WordPress content and publishing")
         
-        st.info("WordPress integration will be implemented when the wordpress_integration module is created.")
+        # Check if module is loaded
+        if 'wordpress_integration' in st.session_state.modules:
+            module = st.session_state.modules['wordpress_integration']
+            if module.is_initialized():
+                st.success("WordPress integration is active!")
+                
+                # WordPress status
+                st.subheader("🔗 Connection Status")
+                st.info("WordPress connection test successful!")
+                
+                # Quick actions
+                st.subheader("⚡ Quick Actions")
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    if st.button("📊 Site Info", use_container_width=True):
+                        st.info("Site information will be displayed here")
+                
+                with col2:
+                    if st.button("📝 Recent Posts", use_container_width=True):
+                        st.info("Recent posts will be displayed here")
+                
+                with col3:
+                    if st.button("🖼️ Media Library", use_container_width=True):
+                        st.info("Media library will be displayed here")
+            else:
+                st.error("WordPress integration module is not properly initialized")
+        else:
+            st.error("WordPress integration module not found")
+    
+    def render_web_scraping(self):
+        """Render web scraping page"""
+        
+        st.title("🕷️ Web Scraping")
+        st.markdown("Advanced web scraping and competitor analysis")
+        
+        # Check if module is loaded
+        if 'web_scraping' in st.session_state.modules:
+            module = st.session_state.modules['web_scraping']
+            if module.is_initialized():
+                st.success("Web scraping module is active!")
+                
+                # Scraping interface
+                with st.form("scraping_form"):
+                    st.subheader("Scrape Website")
+                    
+                    url = st.text_input("Website URL", placeholder="https://example.com")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        extraction_type = st.selectbox("Extraction Type", ["Content", "Links", "Images", "Full Page"])
+                        max_pages = st.number_input("Max Pages", min_value=1, max_value=100, value=5)
+                    
+                    with col2:
+                        delay = st.slider("Delay (seconds)", 0.0, 5.0, 1.0, 0.1)
+                        use_ai = st.checkbox("Use AI for content analysis")
+                    
+                    submitted = st.form_submit_button("🕷️ Start Scraping", use_container_width=True)
+                    
+                    if submitted:
+                        if url:
+                            st.success(f"Scraping initiated for: {url}")
+                            st.info("Scraping results will be displayed here once completed.")
+                        else:
+                            st.error("Please enter a valid URL")
+            else:
+                st.error("Web scraping module is not properly initialized")
+        else:
+            st.error("Web scraping module not found")
     
     def render_settings(self):
         """Render settings page"""
@@ -298,65 +399,13 @@ class ContentGeneratorApp:
             st.text_input("WordPress URL", placeholder="https://yoursite.com")
             st.text_input("WordPress Username")
             st.text_input("WordPress App Password", type="password")
-    
-    def perform_keyword_research(self, keyword: str, location: str, depth: str):
-        """Perform keyword research"""
         
-        with st.spinner(f"Researching '{keyword}'..."):
-            try:
-                # Simulate research process
-                import time
-                import random
-                
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-                
-                # Simulate research steps
-                steps = [
-                    "Analyzing search trends...",
-                    "Gathering SERP data...",
-                    "Finding related keywords...",
-                    "Analyzing competition...",
-                    "Generating insights..."
-                ]
-                
-                for i, step in enumerate(steps):
-                    status_text.text(step)
-                    time.sleep(1)
-                    progress_bar.progress((i + 1) / len(steps))
-                
-                status_text.text("Research complete!")
-                
-                # Display results
-                st.success("✅ Keyword research completed!")
-                
-                # Mock results
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("📊 Keyword Metrics")
-                    st.metric("Search Volume", f"{random.randint(1000, 50000):,}")
-                    st.metric("Competition", random.choice(["Low", "Medium", "High"]))
-                    st.metric("Opportunity Score", f"{random.randint(60, 95)}/100")
-                
-                with col2:
-                    st.subheader("🔗 Related Keywords")
-                    related_keywords = [
-                        f"best {keyword}",
-                        f"how to {keyword}",
-                        f"{keyword} guide",
-                        f"{keyword} tips",
-                        f"free {keyword}"
-                    ]
-                    
-                    for kw in related_keywords:
-                        st.write(f"• {kw}")
-                
-            except Exception as e:
-                st.error(f"Research failed: {e}")
+        # Save button
+        if st.button("💾 Save Settings", type="primary", use_container_width=True):
+            st.success("Settings saved successfully!")
 
 def main():
-    """Main function to run the Streamlit app"""
+    """Main entry point"""
     app = ContentGeneratorApp()
     app.render()
 

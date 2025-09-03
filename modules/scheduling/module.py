@@ -20,8 +20,8 @@ class SchedulingModule(BaseModule):
             name="scheduling",
             version="1.0.0",
             description="Content scheduling and publishing automation",
-            dependencies=["content_generation"],
-            optional_dependencies=["wordpress_integration"],
+            dependencies=[],  # No hard dependencies - can work independently
+            optional_dependencies=["content_generation", "wordpress_integration"],
             author="Content Agent Team"
         )
     
@@ -38,9 +38,16 @@ class SchedulingModule(BaseModule):
             self.register_service('calendar_service', self.calendar_service)
             self.register_service('automation_service', self.automation_service)
             
-            # Subscribe to events
-            self.subscribe_to_event('content_generation.content_generated', self._on_content_generated)
-            self.subscribe_to_event('wordpress_integration.publish_requested', self._on_publish_requested)
+            # Subscribe to events (only if modules are available)
+            try:
+                self.subscribe_to_event('content_generation.content_generated', self._on_content_generated)
+            except:
+                self.logger.info("Content generation module not available - skipping event subscription")
+            
+            try:
+                self.subscribe_to_event('wordpress_integration.publish_requested', self._on_publish_requested)
+            except:
+                self.logger.info("WordPress integration module not available - skipping event subscription")
             
             self.logger.info("Scheduling module initialized successfully")
             return True

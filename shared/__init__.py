@@ -8,16 +8,16 @@ from .database.models import (
     WordPressConnection, get_db, init_database
 )
 from .utils.helpers import (
-    TextProcessor, SEOAnalyzer, URLValidator, WebScraper,
+    TextProcessor, SEOAnalyzer, URLValidator,
     CostCalculator, DateTimeUtils, ContentFormatter,
-    ValidationUtils, CacheUtils
+    CacheUtils
 )
 
 __all__ = [
     'Settings', 'get_settings', 'create_directories',
     'Content', 'Schedule', 'KeywordResearch', 'UsageTracking', 
     'WordPressConnection', 'get_db', 'init_database',
-    'TextProcessor', 'SEOAnalyzer', 'URLValidator', 'WebScraper',
+    'TextProcessor', 'SEOAnalyzer', 'URLValidator',
     'CostCalculator', 'DateTimeUtils', 'ContentFormatter',
-    'ValidationUtils', 'CacheUtils'
+    'CacheUtils'
 ]

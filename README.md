@@ -127,6 +127,24 @@ SECRET_KEY=your-secret-key-here
 
 ## 🚀 Quick Start
 
+### Virtual Environment Setup
+This project uses Python 3.12 with a virtual environment (`venv312`).
+
+**PowerShell (Recommended):**
+```powershell
+.\activate.ps1
+```
+
+**Command Prompt:**
+```cmd
+activate.bat
+```
+
+**Manual activation:**
+```powershell
+& ".\venv312\Scripts\Activate.ps1"
+```
+
 ### Method 1: Streamlit Frontend (Recommended for beginners)
 ```bash
 python main.py --mode frontend
